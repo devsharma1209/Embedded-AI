@@ -36,7 +36,10 @@ for msg in st.session_state["messages"]:
 user_input = st.chat_input("Ask your robotics question…")
 
 if user_input:
+    # Save user message
     st.session_state["messages"].append({"role": "user", "content": user_input})
+
+    # Show user message
     with st.chat_message("user"):
         st.markdown(user_input)
 
@@ -48,7 +51,7 @@ if user_input:
         try:
             stream = client.responses.create(
                 model="gpt-4.1-mini",
-                messages=st.session_state["messages"],
+                input=st.session_state["messages"],   # ⬅️ CORRECT
                 stream=True,
             )
 
@@ -62,4 +65,5 @@ if user_input:
             full_reply = f"⚠️ Error: {str(e)}"
             placeholder.markdown(full_reply)
 
+    # Save assistant response
     st.session_state["messages"].append({"role": "assistant", "content": full_reply})
