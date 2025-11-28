@@ -14,7 +14,7 @@ if not api_key:
 
 client = OpenAI(api_key=api_key)
 
-# Initialise chat history
+# Initialize chat history
 if "messages" not in st.session_state:
     st.session_state["messages"] = [
         {
@@ -27,7 +27,7 @@ if "messages" not in st.session_state:
         }
     ]
 
-# Display past messages
+# Display chat history
 for msg in st.session_state["messages"]:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
@@ -36,10 +36,9 @@ for msg in st.session_state["messages"]:
 user_input = st.chat_input("Ask your robotics question…")
 
 if user_input:
-    # Save user message
+    # Append user message
     st.session_state["messages"].append({"role": "user", "content": user_input})
 
-    # Show user message
     with st.chat_message("user"):
         st.markdown(user_input)
 
@@ -51,13 +50,14 @@ if user_input:
         try:
             stream = client.responses.create(
                 model="gpt-4.1-mini",
-                input=st.session_state["messages"],   # ⬅️ CORRECT
+                input=st.session_state["messages"],
                 stream=True,
             )
 
-            for chunk in stream:
-                if chunk.output_text:
-                    token = chunk.output_text
+            # Correct streaming loop
+            for event in stream:
+                if event.type == "response.output_text.delta":
+                    token = event.delta
                     full_reply += token
                     placeholder.markdown(full_reply)
 
@@ -65,5 +65,5 @@ if user_input:
             full_reply = f"⚠️ Error: {str(e)}"
             placeholder.markdown(full_reply)
 
-    # Save assistant response
+    # Append assistant message
     st.session_state["messages"].append({"role": "assistant", "content": full_reply})
